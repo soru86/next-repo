@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  passwordHash      String
+  role              String   @default("CREW")
+  assignedVesselIds String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  assignedVessels   Vessel[]
+
+  @@map("users")
+}
+
+model Vessel {
+  id                 String   @id @default(cuid())
+  name               String
+  imo                String   @unique
+  flag               String
+  type               String
+  status             String   @default("ACTIVE")
+  lastInspectionDate DateTime
+  assignedToUserId   String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  issues             Issue[]
+  assignedToUser     User?    @relation(fields: [assignedToUserId], references: [id])
+
+  @@map("vessels")
+}
+
+model Issue {
+  id          String   @id @default(cuid())
+  vesselId    String
+  category    String
+  description String
+  priority    String   @default("MEDIUM")
+  status      String   @default("OPEN")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  vessel      Vessel   @relation(fields: [vesselId], references: [id], onDelete: Cascade)
+
+  @@map("issues")
+}
